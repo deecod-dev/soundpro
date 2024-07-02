@@ -1,0 +1,13 @@
+button{
+    border: none;
+    border-radius: 2px;
+    box-sizing: border-box;
+}
+#top_part{
+    height: 50px;
+    width: 190px;
+    background-color: aqua;
+}
+#slider{
+    width: 190px;
+}
