@@ -2,39 +2,22 @@ let slider = document.getElementById("slider");
 let mutebtn = document.getElementById("no-sound");
 let voltext = document.getElementById("cvol");
 
+
+
+
+isMuted = false;
+tabId = null;
+let lastvol=-69;
+
 /**
  * @description get current volume and remove the listener after popup complete load
  * @param {Event} event document event coming from listener
  */
 window.onload = function () {
   voltext.innerText = "--";
-  getActiveTabVolume();
 };
-
-isMuted = false;
-tabId = null;
-let lastvol;
-
 setMuted = (muted) => {
   isMuted = muted;
-};
-
-getActiveTabVolume = () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tab) => {
-    if (tab.length > 0) {
-      tab = tab[0];
-      tabId = tab.id;
-      console.log("mess sent get vol");
-      chrome.runtime.sendMessage({ name: "get-tab-volume", tabId }, (vol) => {
-        slider.value = vol.volume;
-        voltext.innerText = vol.volume * 100 || "--";
-
-        setMuted(vol.mute);
-        // console.log(vol);
-      });
-      console.log("we got vol");
-    }
-  });
 };
 
 slider.addEventListener("change", (el) => {
@@ -47,7 +30,7 @@ slider.addEventListener("change", (el) => {
       let tabId = tab.id;
 
       console.log(`vol ${newVol} for tabId ${tabId}`);
-      voltext.innerText = `${newVol * 100}%`;
+      voltext.innerText = `${Math.round(newVol * 100)}%`;//fixed rounding error deecod
       console.log("mess sent set vol");
       chrome.runtime.sendMessage(
         { name: "set-tab-volume", tabId, newVol, mute: false },
