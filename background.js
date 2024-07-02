@@ -1,34 +1,47 @@
 
 // Handle messages from popup
-chrome.runtime.onMessage.addListener((message, sender, res) => {
-    console.log("mess recv")
-    let ops = {
-        "get-tab-volume": (msg) => {
-            res(getTabVolume(msg.tabId))
-            console.log("vol got: ", getTabVolume(msg.tabId))//
-        },
-        "set-tab-volume": (msg) => {
-            console.log("in set vol")
-            if(msg.mute && msg.tabId in tabs){//if u wanna mute
-                tabs[msg.tabId].mute = true
-                setTabVolume(msg.tabId, 0)
-                
-                res(true)
-            }
-            else{//else set new vol
-                res(false)
-                setTabVolume(msg.tabId, msg.newVol)
-            }
-        },
-        undefined(msg){
-            return res(new Error("[ERR] function not implemented"))
-        }
-    }
-    
-    
-    console.log("msg: ", message);
-    ops[message.name](message)
-})
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("mess recv");
+  let ops = {
+    "idk-man": (msg) => {
+      if (msg.tabId in tabs) {
+        console.log("Volume for tabId:", tabval[msg.tabId]);
+        sendResponse(tabval[msg.tabId]);
+      } else {
+        sendResponse(null); // Handle the case where tabId is not found
+      }
+    },
+    "get-tab-volume": (msg) => {
+      res(getTabVolume(msg.tabId));
+      console.log("vol got: ", getTabVolume(msg.tabId));
+    },
+    "set-tab-volume": (msg) => {
+      console.log("in set vol");
+      if (msg.mute && msg.tabId in tabs) {
+        // If you want to mute
+        tabs[msg.tabId].mute = true;
+        setTabVolume(msg.tabId, 0);
+        res(true);
+      } else {
+        // Else set new volume
+        setTabVolume(msg.tabId, msg.newVol);
+        res(false);
+      }
+    },
+    undefined(msg) {
+      return res(new Error("[ERR] function not implemented"));
+    },
+  };
+
+  console.log("msg: ", message);
+  if (ops[message.name]) {
+    ops[message.name](message);
+  } else {
+    sendResponse(new Error("[ERR] function not implemented"));
+  }
+
+  return true; // Indicates that the response is sent asynchronously
+});
 
 // Clean everything up once the tab is closed
 chrome.tabs.onRemoved.addListener(disposeTab)
@@ -65,6 +78,8 @@ function getTabVolume(tabId) {
     return tabId in tabs ? tabs[tabId].gainNode.gain.value : 0
 }
 
+let tabval={}
+
 /**
  * Sets a tab's volume. Captures the tab if it wasn't captured.
  * @param tabId Tab ID
@@ -83,6 +98,8 @@ function setTabVolume(tabId, vol) {
     }
 
     updateBadge(tabId, vol)
+    tabval[tabId]=vol;
+    // console.log("aloo",tabs.tabId,tabId);
 }
 
 /**
