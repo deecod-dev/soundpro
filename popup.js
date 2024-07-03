@@ -22,6 +22,7 @@ window.onload = function () {
         { name: "idk-man", tabId, mute: false },
         (vol) => {
           console.log("hmmmmmm", vol);
+          slider.value=vol;
           setvol(vol);
         }
       );
@@ -63,20 +64,29 @@ mutebtn.addEventListener("click", () => {
 
       let newVol = parseFloat(slider.value);
       if (voltext.innerText === "muted") {
+        console.log("hhhhhhhhhhhhhhhhhhhhh",lastvol);
+        chrome.runtime.sendMessage(
+          { name: "set-tab-volume", tabId, lastvol, mute: !isMuted },
+          (muted) => {
+            setMuted(muted);
+          }
+        );
         voltext.innerText = lastvol;
       } else {
         lastvol = voltext.innerText;
         voltext.innerText = "muted";
+        chrome.runtime.sendMessage(
+          { name: "set-tab-volume", tabId, newVol, mute: !isMuted },
+          (muted) => {
+            setMuted(muted);
+          }
+        );
       }
 
-      console.log(`vol ${newVol} for tabId ${tabId}`);
+      // console.log(`vol ${newVol} for tabId ${tabId}`);
 
-      chrome.runtime.sendMessage(
-        { name: "set-tab-volume", tabId, newVol, mute: !isMuted },
-        (muted) => {
-          setMuted(muted);
-        }
-      );
+      
     }
+    console.log("nowwwwwwww",isMuted);
   });
 });

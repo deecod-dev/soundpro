@@ -88,7 +88,7 @@ let tabval={}
 function setTabVolume(tabId, vol) {
     console.log("in settabvol")
     if (!(tabId in tabs)) captureTab(tabId);
-    console.log("in settabvol2")
+    console.log("in settabvol2",vol)
     if(vol == 0){
         tabs[tabId].mute = false
     }
