@@ -1,8 +1,21 @@
 
+const storagePrefix = "preferredDevice_";
+
+// Assume active device is system default until proven otherwise.
+var activeDevice = "default";
+var activeSinkId;
 // Handle messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("mess recv");
   let ops = {
+    "getActiveDevice":(msg)=>{
+		// The exension popup or a child of this tab (via worker)
+		// is asking for the activeDevice.
+		if (window === top) { // only respond when top
+			debugMessage("| onMessage: getActiveDevice | sendResponse:", activeDevice);
+			sendResponse(activeDevice);
+		}
+  },
     "idk-man": (msg) => {
       if (msg.tabId in tabs) {
         console.log("Volume for tabId:", tabval[msg.tabId]);
@@ -72,6 +85,19 @@ function captureTab(tabId) {
       gainNode.connect(audioContext.destination);
 
       tabs[tabId] = { audioContext, streamSource, gainNode };
+      navigator.mediaDevices.enumerateDevices()
+  .then(devices => {
+    // console.log("aaaaaaaaaaaa")
+    devices.forEach(device => {
+      // console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")
+      if (device.kind === 'audiooutput') {
+        console.log(`Audio output device: ${device.label}, ID: ${device.deviceId}`);
+      }
+    });
+  })
+  .catch(err => {
+    console.error('Device enumeration error:', err);
+  });
       resolve();
     });
   });
@@ -112,7 +138,11 @@ async function setTabVolume(tabId, vol) {
   }
 
   console.log("this", tabs[tabId]);
-
+  // await tabs[tabId].audioContext.setSinkId("default");
+  console.log( tabs[tabId].audioContext,"hhhhhhhhhhhhhhhhhhhh");
+  await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); 
+  devs = await navigator.mediaDevices.enumerateDevices();
+  console.log(devs[2].deviceId, "hehe");
   updateBadge(tabId, vol);
   tabval[tabId] = vol;
 }

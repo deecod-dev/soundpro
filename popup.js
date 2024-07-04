@@ -6,6 +6,8 @@ let isMuted = false;
 let tabId = null;
 let lastvol = -69;
 
+
+
 const setvol = (vol) => {
   voltext.innerText = vol !== null ? `${Math.round(vol * 100)}%` : "--";
 };
@@ -32,6 +34,7 @@ window.onload = function () {
       );
     }
   });
+
 };
 
 const setMuted = (muted) => {
