@@ -17,12 +17,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     },
     "set-tab-volume": (msg) => {
       console.log("in set vol");
-      if (msg.mute && msg.tabId in tabs) {
+      if (msg.mute ) {
+        console.log("inmute")
         // If you want to mute
         tabs[msg.tabId].mute = true;
         setTabVolume(msg.tabId, 0);
         res(true);
       } else {
+        console.log("other case")
         // Else set new volume
         setTabVolume(msg.tabId, msg.newVol);
         res(false);
@@ -55,19 +57,26 @@ let tabs = {}
  * @param tabId Tab ID
  */
 function captureTab(tabId) {
-
+  return new Promise((resolve, reject) => {
     chrome.tabCapture.capture({ audio: true, video: false }, (stream) => {
-        const audioContext = new AudioContext()
-        const streamSource = audioContext.createMediaStreamSource(stream)
-        const gainNode = audioContext.createGain()
-        // streamSource.connect(audioContext.destination)
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+        return;
+      }
 
-        streamSource.connect(gainNode)
-        gainNode.connect(audioContext.destination)
+      const audioContext = new AudioContext();
+      const streamSource = audioContext.createMediaStreamSource(stream);
+      const gainNode = audioContext.createGain();
 
-        tabs[tabId] = {audioContext, streamSource, gainNode}
-    })
+      streamSource.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      tabs[tabId] = { audioContext, streamSource, gainNode };
+      resolve();
+    });
+  });
 }
+
 
 /**
  * Returns a tab's volume, `1` if the tab isn't captured yet.
@@ -85,22 +94,29 @@ let tabval={}
  * @param tabId Tab ID
  * @param vol Volume. `1` means 100%, `0.5` is 50%, etc
  */
-function setTabVolume(tabId, vol) {
-    console.log("in settabvol")
-    if (!(tabId in tabs)) captureTab(tabId);
-    console.log("in settabvol2",vol)
-    if(vol == 0){
-        tabs[tabId].mute = false
-    }
+async function setTabVolume(tabId, vol) {
+  console.log("in settabvol");
 
-    if((vol >= 0) && (vol <= 7) && (tabId in tabs)){
-        tabs[tabId].gainNode.gain.value = (vol)
-    }
+  if (!(tabId in tabs)) {
+    await captureTab(tabId);
+  }
 
-    updateBadge(tabId, vol)
-    tabval[tabId]=vol;
-    // console.log("aloo",tabs.tabId,tabId);
+  console.log("in settabvol2", vol);
+
+  if (vol == 0) {
+    tabs[tabId].mute = false;
+  }
+
+  if (vol >= 0 && vol <= 7 && tabId in tabs) {
+    tabs[tabId].gainNode.gain.value = vol;
+  }
+
+  console.log("this", tabs[tabId]);
+
+  updateBadge(tabId, vol);
+  tabval[tabId] = vol;
 }
+
 
 /**
  * Updates the badge which represents current volume.

@@ -10,9 +10,11 @@ const setvol = (vol) => {
   voltext.innerText = vol !== null ? `${Math.round(vol * 100)}%` : "--";
 };
 
-window.onload = function () {
-  voltext.innerText = "--";
 
+window.onload = function () {
+  // voltext.innerText = "--";
+  // voltext.innerText = `${100}%`;
+  // console.log("doneeeee")
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs.length > 0) {
       tab = tabs[0];
@@ -22,8 +24,10 @@ window.onload = function () {
         { name: "idk-man", tabId, mute: false },
         (vol) => {
           console.log("hmmmmmm", vol);
-          slider.value=vol;
-          setvol(vol);
+          if(vol!=undefined){//to set the intial at 100 and not at --
+            slider.value = vol;
+            setvol(vol);
+          }
         }
       );
     }
@@ -54,6 +58,7 @@ slider.addEventListener("change", (el) => {
       );
     }
   });
+  console.log(parseFloat(window.event.target.value),"sssssssssssssssssssssssssssssss")
 });
 
 mutebtn.addEventListener("click", () => {
@@ -83,7 +88,7 @@ mutebtn.addEventListener("click", () => {
         );
       }
 
-      // console.log(`vol ${newVol} for tabId ${tabId}`);
+      console.log(`vol ${newVol} for tabId ${tabId}`);
 
       
     }
