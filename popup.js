@@ -61,37 +61,37 @@ slider.addEventListener("change", (el) => {
   console.log(parseFloat(window.event.target.value),"sssssssssssssssssssssssssssssss")
 });
 
-mutebtn.addEventListener("click", () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs.length > 0) {
-      tab = tabs[0];
-      tabId = tab.id;
+// mutebtn.addEventListener("click", () => {
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     if (tabs.length > 0) {
+//       tab = tabs[0];
+//       tabId = tab.id;
 
-      let newVol = parseFloat(slider.value);
-      if (voltext.innerText === "muted") {
-        console.log("hhhhhhhhhhhhhhhhhhhhh",lastvol);
-        chrome.runtime.sendMessage(
-          { name: "set-tab-volume", tabId, lastvol, mute: !isMuted },
-          (muted) => {
-            setMuted(muted);
-          }
-        );
-        voltext.innerText = lastvol;
-      } else {
-        lastvol = voltext.innerText;
-        voltext.innerText = "muted";
-        chrome.runtime.sendMessage(
-          { name: "set-tab-volume", tabId, newVol, mute: !isMuted },
-          (muted) => {
-            setMuted(muted);
-          }
-        );
-      }
+//       let newVol = parseFloat(slider.value);
+//       if (voltext.innerText === "muted") {
+//         console.log("hhhhhhhhhhhhhhhhhhhhh",lastvol);
+//         chrome.runtime.sendMessage(
+//           { name: "set-tab-volume", tabId, lastvol, mute: !isMuted },
+//           (muted) => {
+//             setMuted(muted);
+//           }
+//         );
+//         voltext.innerText = lastvol;
+//       } else {
+//         lastvol = voltext.innerText;
+//         voltext.innerText = "muted";
+//         chrome.runtime.sendMessage(
+//           { name: "set-tab-volume", tabId, newVol, mute: !isMuted },
+//           (muted) => {
+//             setMuted(muted);
+//           }
+//         );
+//       }
 
-      console.log(`vol ${newVol} for tabId ${tabId}`);
+//       console.log(`vol ${newVol} for tabId ${tabId}`);
 
       
-    }
-    console.log("nowwwwwwww",isMuted);
-  });
-});
+//     }
+//     console.log("nowwwwwwww",isMuted);
+//   });
+// });
