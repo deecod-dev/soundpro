@@ -32,4 +32,4 @@
 1. **Clone or download the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/volume-manager.git
+   git clone https://github.com/deecod-dev/soundpro
