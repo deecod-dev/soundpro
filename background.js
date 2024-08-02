@@ -1,7 +1,6 @@
-let tabs = {};
-let tabval = {};
+// Adding storage for preferred audio devices
+let preferredDevice = {}; // Store preferred devices for each tab
 
-// Handle messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Message received:", message);
   let ops = {
@@ -23,6 +22,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await setTabVolume(msg.tabId, msg.newVol);
       sendResponse(false);
     },
+    "set-active-device": async (msg) => {
+      // Set and store preferred device for the tab
+      preferredDevice[msg.tabId] = msg.deviceName;
+      sendResponse({ success: true });
+    },
+    "get-active-device": (msg) => {
+      // Retrieve preferred device for the tab
+      sendResponse(preferredDevice[msg.tabId] || null);
+    },
     undefined: (msg) => {
       return sendResponse(new Error("[ERR] function not implemented"));
     },
@@ -37,14 +45,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Indicates that the response is sent asynchronously
 });
 
-// Clean everything up once the tab is closed
-chrome.tabs.onRemoved.addListener(disposeTab);
-
-/**
- * Injects the content script and sets the volume.
- * @param tabId Tab ID
- * @param vol Volume
- */
 async function setTabVolume(tabId, vol) {
   console.log("Set volume");
 
@@ -68,10 +68,6 @@ async function setTabVolume(tabId, vol) {
   );
 }
 
-/**
- * Injects the content script into the specified tab.
- * @param tabId Tab ID
- */
 function injectContentScript(tabId) {
   return new Promise((resolve, reject) => {
     chrome.scripting.executeScript(
@@ -90,20 +86,11 @@ function injectContentScript(tabId) {
   });
 }
 
-/**
- * Returns a tab's volume.
- * @param tabId Tab ID
- */
 function getTabVolume(tabId) {
   console.log("Get volume");
   return tabId in tabval ? tabval[tabId] : 1;
 }
 
-/**
- * Updates the badge to represent current volume.
- * @param tabId Tab ID
- * @param volume Volume
- */
 function updateBadge(tabId, vol) {
   if (tabId in tabs) {
     const text = String(Math.round(vol * 100));
@@ -111,12 +98,9 @@ function updateBadge(tabId, vol) {
   }
 }
 
-/**
- * Disposes the tab's resources.
- * @param tabId Tab ID
- */
 function disposeTab(tabId) {
   if (tabId in tabs) {
     delete tabs[tabId];
+    delete preferredDevice[tabId]; // Cleanup preferred device on tab close
   }
 }

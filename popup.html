@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>popup</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>popup</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="top_part"></div>
-    <div id="audio_source">
-        <ul id="audio_source_list"></ul>
-    </div>
-    <div id="cont">
-        <a id="cvol">100%</a>
-        <input type="range" min="0" max="7" step="0.01" id="slider" value="1">
-    </div>
-    <script src="popup.js"></script>
+  <div id="top_part">
+    <label for="device_select">Select Audio Device:</label>
+    <select id="device_select"></select>
+  </div>
+  <div id="audio_source">
+    <ul id="audio_source_list"></ul>
+  </div>
+  <div id="cont">
+    <a id="cvol">100%</a>
+    <input type="range" min="0" max="7" step="0.01" id="slider" value="1">
+  </div>
+  <script src="popup.js"></script>
 </body>
 </html>
