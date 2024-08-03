@@ -1,4 +1,6 @@
 // Adding storage for preferred audio devices
+let tabs = {};
+let tabval = {};
 let preferredDevice = {}; // Store preferred devices for each tab
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -44,6 +46,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true; // Indicates that the response is sent asynchronously
 });
+
+// Clean everything up once the tab is closed
+chrome.tabs.onRemoved.addListener(disposeTab);
 
 async function setTabVolume(tabId, vol) {
   console.log("Set volume");
