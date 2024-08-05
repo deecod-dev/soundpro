@@ -1,9 +1,9 @@
 let slider = document.getElementById("slider");
 let voltext = document.getElementById("cvol");
 let deviceSelect = document.getElementById("device_select");
+let muteButton = document.getElementById("mute_button");
 
 let tabId = null;
-let lastvol = -69;
 
 const setvol = (vol) => {
   voltext.innerText = vol !== null ? `${Math.round(vol * 100)}%` : "--";
@@ -24,20 +24,24 @@ const populateDeviceList = () => {
   });
 };
 
+const updateSliderWithVolume = (vol) => {
+  if (vol !== undefined && vol !== null) {
+    slider.value = vol;
+    setvol(vol);
+  } else {
+    slider.value = 1;
+    setvol(1);
+  }
+};
+
 window.onload = function () {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs.length > 0) {
       tab = tabs[0];
       tabId = tab.id;
-      chrome.runtime.sendMessage(
-        { name: "idk-man", tabId, mute: false },
-        (vol) => {
-          if (vol != undefined) {
-            slider.value = vol;
-            setvol(vol);
-          }
-        }
-      );
+      chrome.runtime.sendMessage({ name: "get-tab-volume", tabId }, (vol) => {
+        updateSliderWithVolume(vol);
+      });
     }
   });
   populateDeviceList();
@@ -70,4 +74,14 @@ deviceSelect.addEventListener("change", () => {
       }
     }
   );
+});
+
+muteButton.addEventListener("click", () => {
+  chrome.runtime.sendMessage({ name: "toggle-mute", tabId }, (response) => {
+    console.log("Toggled mute");
+    // Fetch the updated volume to update the UI
+    chrome.runtime.sendMessage({ name: "get-tab-volume", tabId }, (vol) => {
+      updateSliderWithVolume(vol);
+    });
+  });
 });

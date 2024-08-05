@@ -18,14 +18,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     gainNode.gain.value = message.volume;
     sendResponse({ success: true });
   } else if (message.action === "setAudioDevice") {
-    // Handle setting the audio output device
     if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
       navigator.mediaDevices
         .enumerateDevices()
         .then((devices) => {
           const device = devices.find((d) => d.label === message.deviceName);
           if (device && device.deviceId) {
-            // Set the audio output device
             const audioElements = document.querySelectorAll("audio, video");
             audioElements.forEach((audio) => {
               audio.setSinkId(device.deviceId).catch((err) => {

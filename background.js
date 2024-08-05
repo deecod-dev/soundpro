@@ -1,7 +1,7 @@
-// Adding storage for preferred audio devices
 let tabs = {};
 let tabval = {};
-let preferredDevice = {}; // Store preferred devices for each tab
+let preferredDevice = {};
+let tabMuteStatus = {}; // Store mute status and previous volume for each tab
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Message received:", message);
@@ -25,13 +25,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse(false);
     },
     "set-active-device": async (msg) => {
-      // Set and store preferred device for the tab
       preferredDevice[msg.tabId] = msg.deviceName;
       sendResponse({ success: true });
     },
     "get-active-device": (msg) => {
-      // Retrieve preferred device for the tab
       sendResponse(preferredDevice[msg.tabId] || null);
+    },
+    "toggle-mute": async (msg) => {
+      await toggleMute(msg.tabId);
+      sendResponse(true);
     },
     undefined: (msg) => {
       return sendResponse(new Error("[ERR] function not implemented"));
@@ -44,10 +46,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse(new Error("[ERR] function not implemented"));
   }
 
-  return true; // Indicates that the response is sent asynchronously
+  return true;
 });
 
-// Clean everything up once the tab is closed
 chrome.tabs.onRemoved.addListener(disposeTab);
 
 async function setTabVolume(tabId, vol) {
@@ -68,6 +69,44 @@ async function setTabVolume(tabId, vol) {
       if (response && response.success) {
         tabval[tabId] = vol;
         updateBadge(tabId, vol);
+      }
+    }
+  );
+}
+
+async function toggleMute(tabId) {
+  console.log("Toggling mute");
+
+  if (!(tabId in tabs)) {
+    await injectContentScript(tabId);
+  }
+
+  let muteStatus = tabMuteStatus[tabId] || {
+    isMuted: false,
+    previousVolume: 1,
+  };
+  let newVolume = muteStatus.isMuted ? muteStatus.previousVolume : 0;
+
+  chrome.tabs.sendMessage(
+    tabId,
+    { action: "setVolume", volume: newVolume },
+    (response) => {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+        return;
+      }
+      if (response && response.success) {
+        if (!muteStatus.isMuted) {
+          tabMuteStatus[tabId] = {
+            isMuted: true,
+            previousVolume: tabval[tabId],
+          };
+          tabval[tabId] = 0;
+        } else {
+          tabval[tabId] = muteStatus.previousVolume;
+          tabMuteStatus[tabId].isMuted = false;
+        }
+        updateBadge(tabId, newVolume);
       }
     }
   );
@@ -106,6 +145,7 @@ function updateBadge(tabId, vol) {
 function disposeTab(tabId) {
   if (tabId in tabs) {
     delete tabs[tabId];
-    delete preferredDevice[tabId]; // Cleanup preferred device on tab close
+    delete preferredDevice[tabId];
+    delete tabMuteStatus[tabId];
   }
 }
